@@ -1,0 +1,77 @@
+#!/usr/bin/env python3
+import argparse
+from curses import keyname
+import enum
+import os
+from random import choice
+import sys
+from typing import NamedTuple
+
+class TeaType(enum.Enum):
+    DOUBLE_QUOTES = 'DOUBLE_QUOTES'
+    NO_FUTURE = 'NO_FUTURE'
+    QUOTES_STYLE = 'QUOTES_STYLE'
+    SINGLE_QUOTES= 'SINGLE_QUOTE'
+
+class Tea(NamedTuple):
+    text: str
+    type: TeaType
+
+def get_future_features() -> dict[str, Tea]:
+    return {
+        "from __future__ import news": Tea("I can't predict the future", TeaType.NO_FUTURE),
+        "from __future__ import single_quotes": Tea("Not A Chance. We use double quotes.", TeaType.SINGLE_QUOTES),
+        "from __future__ import double_quotes": Tea("Not A Chance. We use single quotes.", TeaType.DOUBLE_QUOTES),
+        "from __future__ import quotes": Tea("you can use your prefered quote but please stick with one.", TeaType.QUOTES_STYLE)
+    }
+
+def get_random_paths():
+    return [
+        '/usr/bin/python',
+        '/dev/null',
+        os.environ.get('PWD') + '/python3'
+    ]
+
+def print_error(tea: Tea, file_name: str) -> None:
+    print('\n'.join([
+        f'Traceback (most recent call last):',
+        f'  File "{choice(get_random_paths())}", line 1, in <module>',
+        f'    raise SystemExit(main())',
+        f'  File "{file_name}", line 30, in run_things',
+        f'    raise SyntaxError({tea.type})',
+        f'SyntaxError: {tea.text}'
+
+    ]))
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('filename')
+
+    args = parser.parse_args()
+
+
+    if args.filename:
+        if args.filename == 'all':
+            items = ',\n'.join([
+                f'{key}: ----- {get_future_features()[key].text} -----' for key in get_future_features().keys()
+                ])
+            print('\n'.join([
+                'possible replacers:',
+                items
+            ]))
+        else:
+            with open(args.filename, 'r') as f:
+                content = ','.join(f.readlines())
+                items = get_future_features()
+                for item in items.keys():
+                    if item.lower() in content.lower():
+                        print_error(items.get(item), args.filename)
+            
+
+
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

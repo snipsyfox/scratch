@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import argparse
-from curses import keyname
 import enum
 import os
 from random import choice
